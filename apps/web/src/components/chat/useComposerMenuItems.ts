@@ -72,6 +72,7 @@ export function useComposerMenuItems({
   pullRequestProjectId,
   pullRequestRepository,
   threadPullRequests,
+  interactionModeAvailable,
   sideChatAvailable,
   sideChatDisabledReason,
   freshSessionAvailable,
@@ -92,6 +93,7 @@ export function useComposerMenuItems({
   readonly pullRequestProjectId: ProjectId | null;
   readonly pullRequestRepository: string | null;
   readonly threadPullRequests: ReadonlyArray<ThreadPullRequestLink> | undefined;
+  readonly interactionModeAvailable: boolean;
   readonly sideChatAvailable: boolean;
   readonly sideChatDisabledReason: string | null;
   readonly freshSessionAvailable: boolean;
@@ -262,6 +264,24 @@ export function useComposerMenuItems({
           label: "/model",
           description: gt("Switch response model for this thread"),
         },
+        ...(interactionModeAvailable
+          ? ([
+              {
+                id: "slash:plan",
+                type: "slash-command",
+                command: "plan",
+                label: "/plan",
+                description: gt("Switch this thread into plan mode"),
+              },
+              {
+                id: "slash:default",
+                type: "slash-command",
+                command: "default",
+                label: "/default",
+                description: gt("Switch this thread back to normal build mode"),
+              },
+            ] as const)
+          : []),
         ...(sideChatAvailable
           ? ([
               {
@@ -323,7 +343,9 @@ export function useComposerMenuItems({
       const visibleProviderSlashCommandItems = providerSlashCommandItems.filter(
         (item) =>
           (item.command.name !== "compact" || compactSlashCommandAvailable) &&
-          (item.command.name !== "clear" || !freshSessionAvailable),
+          (item.command.name !== "clear" || !freshSessionAvailable) &&
+          (!interactionModeAvailable ||
+            (item.command.name !== "plan" && item.command.name !== "default")),
       );
       const slashCommandItems = slashCommandItemsForPromptPosition(
         [...builtInSlashCommandItems, ...visibleProviderSlashCommandItems, ...skillItems],

@@ -643,6 +643,9 @@ export default function ChatView(props: ChatViewProps) {
   const composerRuntimeMode = useComposerDraftStore(
     (store) => store.getComposerDraft(composerDraftTarget)?.runtimeMode ?? null,
   );
+  const composerInteractionMode = useComposerDraftStore(
+    (store) => store.getComposerDraft(composerDraftTarget)?.interactionMode ?? null,
+  );
   const composerActiveProvider = useComposerDraftStore(
     (store) => store.getComposerDraft(composerDraftTarget)?.activeProvider ?? null,
   );
@@ -1453,6 +1456,10 @@ export default function ChatView(props: ChatViewProps) {
       composerModelSelectionApplies ? composerSelectedModelSelection : null,
       activeThread?.modelSelection,
     ].find((selection) => selection?.instanceId === activeProviderInstanceId)?.model ?? null;
+  const interactionMode: ProviderInteractionMode =
+    activeProviderStatus?.showInteractionModeToggle === true
+      ? (composerInteractionMode ?? serverThread?.interactionMode ?? DEFAULT_INTERACTION_MODE)
+      : DEFAULT_INTERACTION_MODE;
   const conversationProviderStatus =
     providerStatuses.find((status) => status.instanceId === activeRuntime?.providerInstanceId) ??
     activeProviderStatus;
@@ -3082,6 +3089,7 @@ export default function ChatView(props: ChatViewProps) {
 
   const {
     getModelDisabledReason,
+    handleInteractionModeChangeStable,
     handleRuntimeModeChangeStable,
     onEnvModeChangeStable,
     onProviderModelSelectStable,
@@ -3100,6 +3108,7 @@ export default function ChatView(props: ChatViewProps) {
     supportsProviderSwitchingViaHandoff,
     multipleModelSelections,
     runtimeMode,
+    interactionMode,
     isLocalDraftThread,
     canOverrideServerThreadEnvMode,
     setPendingServerThreadEnvModeEntry,
@@ -3119,6 +3128,7 @@ export default function ChatView(props: ChatViewProps) {
     threadDetailLoading,
     activeEnvironmentUnavailable,
     runtimeMode,
+    interactionMode,
     localCheckoutBranchMismatch,
     composerRef,
     persistThreadSettingsForNextTurn,
@@ -3144,6 +3154,7 @@ export default function ChatView(props: ChatViewProps) {
     isGitRepo,
     phase,
     runtimeMode,
+    interactionMode,
     sendEnvMode,
     worktreeRepositories,
     startFromOrigin,
@@ -3936,6 +3947,7 @@ export default function ChatView(props: ChatViewProps) {
                                 activePendingIsResponding={activePendingIsResponding}
                                 respondingRequestIds={respondingRequestIds}
                                 runtimeMode={runtimeMode}
+                                interactionMode={interactionMode}
                                 defaultRuntimeMode={defaultRuntimeMode}
                                 lockedProvider={modelPickerLockedProvider}
                                 providerStatuses={providerStatuses as ServerProvider[]}
@@ -3996,6 +4008,7 @@ export default function ChatView(props: ChatViewProps) {
                                 onOpenProviderSetup={openProviderSetupStable}
                                 getModelDisabledReason={getModelDisabledReason}
                                 handleRuntimeModeChange={handleRuntimeModeChangeStable}
+                                handleInteractionModeChange={handleInteractionModeChangeStable}
                                 focusComposer={focusComposerStable}
                                 scheduleComposerFocus={scheduleComposerFocusStable}
                                 setThreadError={setThreadError}

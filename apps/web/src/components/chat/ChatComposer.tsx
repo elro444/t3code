@@ -35,6 +35,7 @@ import type {
   ThreadContextRecord,
   EnvironmentContextRecord,
   ResolvedKeybindingsConfig,
+  ProviderInteractionMode,
   RuntimeMode,
   RuntimeRequestId,
   ScopedThreadRef,
@@ -426,6 +427,7 @@ export interface ChatComposerProps {
   respondingRequestIds: RuntimeRequestId[];
 
   runtimeMode: RuntimeMode;
+  interactionMode: ProviderInteractionMode;
   defaultRuntimeMode?: RuntimeMode;
 
   lockedProvider: ProviderDriverKind | null;
@@ -512,6 +514,7 @@ export interface ChatComposerProps {
   onOpenProviderSetup: (instanceId: ProviderInstanceId) => void;
   getModelDisabledReason: (instanceId: ProviderInstanceId, model: string) => string | null;
   handleRuntimeModeChange: (mode: RuntimeMode) => void;
+  handleInteractionModeChange: (mode: ProviderInteractionMode) => void;
 
   focusComposer: () => void;
   scheduleComposerFocus: () => void;
@@ -562,6 +565,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     activePendingIsResponding: incomingPendingIsResponding,
     respondingRequestIds,
     runtimeMode,
+    interactionMode,
     lockedProvider,
     providerStatuses,
     providerCatalogKnown,
@@ -604,6 +608,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     onOpenProviderSetup,
     getModelDisabledReason,
     handleRuntimeModeChange,
+    handleInteractionModeChange,
     focusComposer,
     scheduleComposerFocus,
     setThreadError,
@@ -1038,6 +1043,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         (multipleModelSelections === null ? providerSendBlockReason : null)));
   const isSendDisabled = sendDisabledReason !== null;
   const selectedProviderStatus = selectedProviderEntry?.snapshot ?? null;
+  const interactionModeAvailable = selectedProviderStatus?.showInteractionModeToggle === true;
   const selectedProviderSkills = selectedProviderStatus
     ? resolveProviderSkillsForCwd(selectedProviderStatus, gitCwd)
     : NO_PROVIDER_SKILLS;
@@ -1231,6 +1237,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     pullRequestProjectId,
     pullRequestRepository,
     threadPullRequests,
+    interactionModeAvailable,
     sideChatAvailable: props.sideChatAvailable === true,
     sideChatDisabledReason: props.sideChatDisabledReason ?? null,
     freshSessionAvailable: props.onFreshSession !== undefined,
@@ -2109,6 +2116,16 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         }
         return;
       }
+      if (item.command === "plan" || item.command === "default") {
+        const applied = applyPromptReplacement(trigger.rangeStart, trigger.rangeEnd, "", {
+          expectedText: snapshot.value.slice(trigger.rangeStart, trigger.rangeEnd),
+        });
+        if (applied) {
+          setComposerHighlightedItemId(null);
+          handleInteractionModeChange(item.command);
+        }
+        return;
+      }
       if (item.command === "side" || item.command === "btw") {
         if (props.sideChatDisabledReason) return;
         const applied = applyPromptReplacement(
@@ -2709,6 +2726,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       defaultRuntimeMode={props.defaultRuntimeMode}
       compatibleRuntimeModeOptions={compatibleRuntimeModeOptions}
       handleRuntimeModeChange={handleRuntimeModeChange}
+      interactionMode={interactionMode}
+      handleInteractionModeChange={handleInteractionModeChange}
       composerControlsCollapsed={composerControlsCollapsed}
       effortDisplay={settings.effortDisplay}
       permissionsShownInStrip={props.permissionsShownInStrip}

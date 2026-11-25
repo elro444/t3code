@@ -3,9 +3,10 @@ import type { PromptUltrathink } from "./TraitsPicker";
 import type { ProviderInstanceEntry } from "../../providerInstances";
 import { type AppModelOption } from "../../modelSelection";
 import { useGT, useMessages } from "gt-react";
-import { CircleAlertIcon } from "lucide-react";
+import { CircleAlertIcon, PencilRulerIcon } from "lucide-react";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { CompactComposerControlsMenu } from "./CompactComposerControlsMenu";
-import { ComposerControl } from "./ComposerControl";
+import { ComposerControl, ComposerControlIcon } from "./ComposerControl";
 import {
   ComposerFooterModeControls,
   ComposerModelPicker,
@@ -16,6 +17,7 @@ import {
   type ModelSelection,
   type ProviderDriverKind,
   type ProviderInstanceId,
+  type ProviderInteractionMode,
   type RuntimeMode,
   type ServerProvider,
 } from "@t3tools/contracts";
@@ -61,6 +63,8 @@ export function ComposerControlsBar(props: {
   defaultRuntimeMode: RuntimeMode | undefined;
   compatibleRuntimeModeOptions: ReadonlyArray<RuntimeModeOption>;
   handleRuntimeModeChange: (mode: RuntimeMode) => void;
+  interactionMode: ProviderInteractionMode;
+  handleInteractionModeChange: (mode: ProviderInteractionMode) => void;
   composerControlsCollapsed: boolean;
   composerControlsHidden: boolean;
   restingHiddenBlockCount: number;
@@ -105,6 +109,8 @@ export function ComposerControlsBar(props: {
     defaultRuntimeMode,
     compatibleRuntimeModeOptions,
     handleRuntimeModeChange,
+    interactionMode,
+    handleInteractionModeChange,
     composerControlsCollapsed,
     composerControlsHidden,
     restingHiddenBlockCount: measuredHiddenBlockCount,
@@ -266,6 +272,36 @@ export function ComposerControlsBar(props: {
   ) : (
     <>
       {composerModelPicker}
+      {interactionMode === "plan" ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ComposerControl
+                type="button"
+                size={controlSize}
+                className="shrink-0"
+                aria-label={gt("Plan mode. Click to return to build mode")}
+                onClick={() => handleInteractionModeChange("default")}
+              />
+            }
+          >
+            <ComposerControlIcon
+              icon={PencilRulerIcon}
+              size={controlSize}
+              className="text-current"
+            />
+            <span
+              data-composer-control-label
+              className={controlSize === "xs" ? "sr-only" : undefined}
+            >
+              {gt("Plan")}
+            </span>
+          </TooltipTrigger>
+          <TooltipPopup side="top">
+            {gt("Plan mode. Click to return to build mode")}
+          </TooltipPopup>
+        </Tooltip>
+      ) : null}
 
       <>
         {restingBlockDefs.map((def, index) => {

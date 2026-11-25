@@ -310,7 +310,11 @@ session** in the command palette on web and desktop. The conversation continues,
 and your next message starts the agent again with the new setup.
 
 Provider commands must start the message to run. T3 Code commands such as
-`/model` and skill mentions work on any line.
+`/model`, `/plan`, and skill mentions work on any line.
+
+With Claude or Codex, pick `/plan` to have the agent propose a plan before it edits
+anything. A **Plan** chip shows next to the model while the thread is in plan mode.
+Click it or pick `/default` to go back to building.
 
 Send `/compact` in an existing conversation to reduce context usage when the
 provider supports it.
