@@ -1,6 +1,7 @@
 # Product usage data
 
-The T3 Code server sends product usage events to T3 Code's own endpoint at `ingest.t3.codes`,
+This fork sends no product usage events or relay traces unless you opt in by setting
+`T3CODE_TELEMETRY_ENABLED=true` in the server's environment. When you opt in, the server sends product usage events to T3 Code's own endpoint at `ingest.t3.codes`,
 associated with a hashed random identifier for the installation. To count how many installations one person
 uses, the server also sends a hashed identifier for your T3 Connect account when you are signed in
 to one, and a random identifier for each device that connects. The endpoint keeps a copy of each
@@ -71,15 +72,10 @@ separate from product events. Traces carry connection timings, request paths, en
 thread identifiers, and error types. They omit machine addresses, query strings, log lines,
 error messages, and stack frames.
 
-To disable product events and relay tracing from the server, set
-`T3CODE_TELEMETRY_ENABLED=false` or `DO_NOT_TRACK=1` in its environment before starting it.
-`DO_NOT_TRACK=1` wins over `T3CODE_TELEMETRY_ENABLED=true`. Relay tracing also stops
-when `T3CODE_OTEL_SDK_DISABLED` or `OTEL_SDK_DISABLED` turns OpenTelemetry export off.
-
-On a CI runner, the server sends no product events or relay traces by default. It treats a run as
-CI when a common CI variable is set, such as `CI`, `GITHUB_ACTIONS`, `GITLAB_CI`, or `JENKINS_URL`.
-`CI=false` and `CI=0` do not count. To send them from CI anyway, set
-`T3CODE_TELEMETRY_ENABLED=true`.
+Product events and relay tracing are off unless the server starts with
+`T3CODE_TELEMETRY_ENABLED=true`. `DO_NOT_TRACK=1` wins over `T3CODE_TELEMETRY_ENABLED=true`.
+Relay tracing also stays off when `T3CODE_OTEL_SDK_DISABLED` or `OTEL_SDK_DISABLED` turns
+OpenTelemetry export off.
 
 An administrator can turn product events and relay tracing off in the server and desktop app with
 a [managed policy](./managed-policy.md#other-capabilities). This does not control traces sent by
@@ -99,10 +95,10 @@ sends startup timings, and every report carries a random ID for the install. Rep
 the T3 Connect relay to Axiom. They do not include your threads, prompts, or connection details,
 but an error message can quote a value the app was handling.
 
-To stop sending them, turn off **Send crash reports** in **Settings > About T3 Code > Diagnostics**.
+They are off until you turn on **Send crash reports** in **Settings > About T3 Code > Diagnostics**.
 
 The mobile app also sends relay connection traces when its build has tracing configured. These
-carry an identifier for the current app session. To stop them, turn off **Send connection traces**
+carry an identifier for the current app session. They are off until you turn on **Send connection traces**
 in **Settings > About T3 Code > Diagnostics**, or on the T3 Connect setup sheet shown after you
 sign in. This is separate from crash reports. Server environment variables and managed policy do
 not disable mobile tracing.

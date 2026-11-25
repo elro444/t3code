@@ -312,13 +312,18 @@ describe("installRelayTelemetryEnabled", () => {
         beforeDiscovery: false,
         afterDiscovery: false,
       });
-      // Undecided until the login shell is read, so the renderer asks again instead of opting out.
       assert.deepEqual(yield* relayTelemetryEnabled({}), {
+        beforeDiscovery: false,
+        afterDiscovery: false,
+      });
+      const on = { T3CODE_TELEMETRY_ENABLED: "true" };
+      // Undecided until the login shell is read, so the renderer asks again instead of opting out.
+      assert.deepEqual(yield* relayTelemetryEnabled({ ...on }), {
         beforeDiscovery: null,
         afterDiscovery: true,
       });
       assert.deepEqual(
-        yield* relayTelemetryEnabled({}, undefined, { T3CODE_TELEMETRY_ENABLED: "false" }),
+        yield* relayTelemetryEnabled({ ...on }, undefined, { T3CODE_TELEMETRY_ENABLED: "false" }),
         { beforeDiscovery: null, afterDiscovery: false },
       );
     }),
@@ -334,11 +339,12 @@ describe("installRelayTelemetryEnabled", () => {
       const after = function* (...args: Parameters<typeof relayTelemetryEnabled>) {
         return (yield* relayTelemetryEnabled(...args)).afterDiscovery;
       };
-      assert.isFalse(yield* after({}, policy({ telemetry: false })));
-      assert.isTrue(yield* after({}, policy({ webhookTasks: false })));
+      const on = () => ({ T3CODE_TELEMETRY_ENABLED: "true" });
+      assert.isFalse(yield* after(on(), policy({ telemetry: false })));
+      assert.isTrue(yield* after(on(), policy({ webhookTasks: false })));
       // A policy that cannot be read fails closed.
       assert.isFalse(
-        yield* after({}, new ManagedPolicyFileError({ path: "/test", reason: "bad JSON" })),
+        yield* after(on(), new ManagedPolicyFileError({ path: "/test", reason: "bad JSON" })),
       );
     }),
   );
